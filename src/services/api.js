@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api',  // mientras trabajas en local
+  baseURL: 'clinica-nol-backend.railway.internal',  // mientras trabajas en local
   // baseURL: 'https://tu-backend.railway.app/api',  // cuando subas a producción
   headers: {
     'Content-Type': 'application/json',
