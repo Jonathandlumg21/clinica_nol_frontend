@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://clinicanolbackend-production.up.railway.app/api',  // mientras trabajas en local
-  // baseURL: 'https://tu-backend.railway.app/api',  // cuando subas a producción
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
   headers: {
     'Content-Type': 'application/json',
   },
