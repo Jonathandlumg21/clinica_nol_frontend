@@ -43,7 +43,7 @@ export default function Navbar() {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const esAdmin = user?.rol === 'administrador';
+  const esAdmin = user?.rol === 'admin';
   const links = allLinks.filter(l => !l.soloAdmin || esAdmin);
 
   return (

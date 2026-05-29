@@ -10,7 +10,7 @@ import UsuariosPage from './pages/UsuariosPage';
 
 function SoloAdmin({ children }) {
   const { user } = useAuth();
-  return user?.rol === 'administrador' ? children : <Navigate to="/" replace />;
+  return user?.rol === 'admin' ? children : <Navigate to="/" replace />;
 }
 
 const layout = {
