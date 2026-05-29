@@ -21,6 +21,8 @@ const s = {
   }),
   badgeMedico: { background: '#f0fdf4', color: '#166534', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '500' },
   btnHistorial: { background: 'transparent', border: '1px solid #d1d5db', color: '#475569', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  btnEditar: { background: 'transparent', border: '1px solid #93c5fd', color: '#2563eb', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  actions: { display: 'flex', gap: '8px', alignItems: 'center' },
   // Modal
   overlay: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
@@ -52,6 +54,12 @@ const s = {
     background: '#1e3a5f', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
   },
   error: { color: '#ef4444', fontSize: '13px', marginBottom: '12px' },
+  toast: {
+    position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
+    background: '#166534', color: '#fff', padding: '12px 24px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+    zIndex: 200, whiteSpace: 'nowrap',
+  },
 };
 
 const emptyForm = {
@@ -73,10 +81,17 @@ export default function PacientesPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
   const [formError, setFormError] = useState('');
   const navigate = useNavigate();
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   const fetchPacientes = () =>
     api.get('/pacientes').then(res => setPacientes(res.data.value ?? res.data));
@@ -100,10 +115,17 @@ export default function PacientesPage() {
     setFormError('');
     setSaving(true);
     try {
-      await api.post('/pacientes', { ...form, id_medico: Number(form.id_medico) });
+      const payload = { ...form, id_medico: Number(form.id_medico) };
+      if (editingId) {
+        await api.put(`/pacientes/${editingId}`, payload);
+      } else {
+        await api.post('/pacientes', payload);
+      }
       await fetchPacientes();
       setShowModal(false);
       setForm(emptyForm);
+      setEditingId(null);
+      showToast(editingId ? 'Paciente actualizado correctamente' : 'Paciente guardado correctamente');
     } catch (err) {
       setFormError(err.response?.data?.error ?? 'Error al guardar el paciente.');
     } finally {
@@ -111,8 +133,23 @@ export default function PacientesPage() {
     }
   };
 
-  const openModal = () => { setForm(emptyForm); setFormError(''); setShowModal(true); };
-  const closeModal = () => { setShowModal(false); setFormError(''); };
+  const openModal = () => { setForm(emptyForm); setEditingId(null); setFormError(''); setShowModal(true); };
+  const openEdit = (p) => {
+    const fechaISO = p.fecha_nacimiento ? p.fecha_nacimiento.split('T')[0] : '';
+    setForm({
+      nombre: p.nombre ?? '',
+      apellido: p.apellido ?? '',
+      fecha_nacimiento: fechaISO,
+      sexo: p.sexo ?? 'Masculino',
+      telefono: p.telefono ?? '',
+      direccion: p.direccion ?? '',
+      id_medico: p.id_medico ? String(p.id_medico) : '',
+    });
+    setEditingId(p.id);
+    setFormError('');
+    setShowModal(true);
+  };
+  const closeModal = () => { setShowModal(false); setEditingId(null); setFormError(''); };
 
   if (loading) return <div style={s.page}><p style={{ color: '#64748b' }}>Cargando pacientes...</p></div>;
   if (loadError) return <div style={s.page}><p style={{ color: '#ef4444' }}>{loadError}</p></div>;
@@ -151,12 +188,15 @@ export default function PacientesPage() {
               <td style={s.td}>{p.direccion}</td>
               <td style={s.td}><span style={s.badgeMedico}>{p.medico?.nombre}</span></td>
               <td style={s.td}>
-                <button
-                  style={s.btnHistorial}
-                  onClick={() => navigate(`/consultas?paciente=${p.id}&nombre=${encodeURIComponent(p.nombre + ' ' + p.apellido)}`)}
-                >
-                  Ver historial
-                </button>
+                <div style={s.actions}>
+                  <button style={s.btnEditar} onClick={() => openEdit(p)}>Editar</button>
+                  <button
+                    style={s.btnHistorial}
+                    onClick={() => navigate(`/consultas?paciente=${p.id}&nombre=${encodeURIComponent(p.nombre + ' ' + p.apellido)}`)}
+                  >
+                    Ver historial
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -166,7 +206,7 @@ export default function PacientesPage() {
       {showModal && (
         <div style={s.overlay} onClick={e => e.target === e.currentTarget && closeModal()}>
           <div style={s.modal}>
-            <p style={s.modalTitle}>Nuevo paciente</p>
+            <p style={s.modalTitle}>{editingId ? 'Editar paciente' : 'Nuevo paciente'}</p>
 
             {formError && <p style={s.error}>{formError}</p>}
 
@@ -220,13 +260,15 @@ export default function PacientesPage() {
               <div style={s.modalFooter}>
                 <button type="button" style={s.btnCancel} onClick={closeModal}>Cancelar</button>
                 <button type="submit" style={s.btnSave} disabled={saving}>
-                  {saving ? 'Guardando...' : 'Guardar paciente'}
+                  {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Guardar paciente'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {toast && <div style={s.toast}>✓ {toast}</div>}
     </div>
   );
 }

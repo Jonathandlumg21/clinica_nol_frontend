@@ -55,6 +55,15 @@ const s = {
   vitals: { display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap', marginTop: '4px' },
   vitalItem: { background: '#f8fafc', padding: '2px 8px', borderRadius: '4px' },
   btnVer: { background: 'transparent', border: '1px solid #d1d5db', color: '#475569', borderRadius: '6px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  searchWrap: { position: 'relative' },
+  searchList: {
+    position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
+    background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '200px', overflowY: 'auto',
+  },
+  searchItem: { padding: '9px 12px', fontSize: '14px', color: '#334155', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' },
+  searchItemHover: { padding: '9px 12px', fontSize: '14px', color: '#1e293b', cursor: 'pointer', background: '#eff6ff', borderBottom: '1px solid #f1f5f9' },
+  searchEmpty: { padding: '12px', fontSize: '13px', color: '#94a3b8', textAlign: 'center' },
   // Modal detalle
   detailModal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '100%', maxWidth: '520px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', maxHeight: '90vh', overflowY: 'auto' },
   detailHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' },
@@ -93,6 +102,9 @@ export default function ConsultasPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [pacienteSearch, setPacienteSearch] = useState('');
+  const [showPacienteList, setShowPacienteList] = useState(false);
+  const [hoveredPaciente, setHoveredPaciente] = useState(null);
 
   const pacienteIdFiltro = searchParams.get('paciente') ?? '';
   const pacienteNombreFiltro = searchParams.get('nombre') ?? '';
@@ -127,8 +139,13 @@ export default function ConsultasPage() {
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+  const pacientesFiltrados = pacientes.filter(p =>
+    `${p.nombre} ${p.apellido}`.toLowerCase().includes(pacienteSearch.toLowerCase())
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.id_paciente) { setFormError('Debes seleccionar un paciente.'); return; }
     setFormError('');
     setSaving(true);
     try {
@@ -152,8 +169,14 @@ export default function ConsultasPage() {
     }
   };
 
-  const openModal = () => { setForm(emptyForm); setFormError(''); setShowModal(true); };
-  const closeModal = () => { setShowModal(false); setFormError(''); };
+  const openModal = () => { setForm(emptyForm); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); setShowModal(true); };
+  const closeModal = () => { setShowModal(false); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); };
+
+  const seleccionarPaciente = (p) => {
+    setForm(f => ({ ...f, id_paciente: String(p.id) }));
+    setPacienteSearch(`${p.nombre} ${p.apellido}`);
+    setShowPacienteList(false);
+  };
 
   if (loading) return <div style={s.page}><p style={{ color: '#64748b' }}>Cargando consultas...</p></div>;
 
@@ -248,12 +271,40 @@ export default function ConsultasPage() {
               <div style={s.grid2}>
                 <div style={s.field}>
                   <label style={s.label}>Paciente *</label>
-                  <select style={s.select} name="id_paciente" value={form.id_paciente} onChange={handleChange} required>
-                    <option value="">Seleccionar...</option>
-                    {pacientes.map(p => (
-                      <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-                    ))}
-                  </select>
+                  <div style={s.searchWrap}>
+                    <input
+                      style={{ ...s.input, borderColor: form.id_paciente ? '#86efac' : '#d1d5db' }}
+                      placeholder="Buscar por nombre..."
+                      value={pacienteSearch}
+                      autoComplete="off"
+                      onChange={e => {
+                        setPacienteSearch(e.target.value);
+                        setShowPacienteList(true);
+                        if (form.id_paciente) setForm(f => ({ ...f, id_paciente: '' }));
+                      }}
+                      onFocus={() => setShowPacienteList(true)}
+                      onBlur={() => setTimeout(() => setShowPacienteList(false), 150)}
+                    />
+                    {showPacienteList && (
+                      <div style={s.searchList}>
+                        {pacientesFiltrados.length === 0 ? (
+                          <div style={s.searchEmpty}>No se encontraron pacientes</div>
+                        ) : (
+                          pacientesFiltrados.map(p => (
+                            <div
+                              key={p.id}
+                              style={hoveredPaciente === p.id ? s.searchItemHover : s.searchItem}
+                              onMouseEnter={() => setHoveredPaciente(p.id)}
+                              onMouseLeave={() => setHoveredPaciente(null)}
+                              onMouseDown={() => seleccionarPaciente(p)}
+                            >
+                              {p.nombre} {p.apellido}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={s.field}>
                   <label style={s.label}>Médico</label>
