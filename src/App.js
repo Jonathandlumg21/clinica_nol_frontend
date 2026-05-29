@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
@@ -7,6 +7,11 @@ import Dashboard from './pages/Dashboard';
 import PacientesPage from './pages/PacientesPage';
 import ConsultasPage from './pages/ConsultasPage';
 import UsuariosPage from './pages/UsuariosPage';
+
+function SoloAdmin({ children }) {
+  const { user } = useAuth();
+  return user?.rol === 'administrador' ? children : <Navigate to="/" replace />;
+}
 
 const layout = {
   app: { display: 'flex', minHeight: '100vh', background: '#f1f5f9' },
@@ -22,7 +27,7 @@ function AppLayout() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/pacientes" element={<PacientesPage />} />
           <Route path="/consultas" element={<ConsultasPage />} />
-          <Route path="/usuarios" element={<UsuariosPage />} />
+          <Route path="/usuarios" element={<SoloAdmin><UsuariosPage /></SoloAdmin>} />
         </Routes>
       </main>
     </div>

@@ -30,11 +30,11 @@ const s = {
   },
 };
 
-const links = [
+const allLinks = [
   { to: '/', label: 'Dashboard', icon: '◈' },
   { to: '/pacientes', label: 'Pacientes', icon: '♥' },
   { to: '/consultas', label: 'Consultas', icon: '✚' },
-  { to: '/usuarios', label: 'Usuarios', icon: '◎' },
+  { to: '/usuarios', label: 'Usuarios', icon: '◎', soloAdmin: true },
 ];
 
 export default function Navbar() {
@@ -42,6 +42,9 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  const esAdmin = user?.rol === 'administrador';
+  const links = allLinks.filter(l => !l.soloAdmin || esAdmin);
 
   return (
     <aside style={s.sidebar}>
