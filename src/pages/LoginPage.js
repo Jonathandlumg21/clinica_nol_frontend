@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -37,25 +37,53 @@ const s = {
   },
 };
 
+const MAX_INTENTOS = 5;
+const BLOQUEO_MS = 30_000;
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [intentos, setIntentos] = useState(0);
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [ahora, setAhora] = useState(Date.now());
+  useEffect(() => {
+    if (!bloqueadoHasta) return;
+    const id = setInterval(() => setAhora(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [bloqueadoHasta]);
+
+  const segundosRestantes = bloqueadoHasta
+    ? Math.max(0, Math.ceil((bloqueadoHasta - ahora) / 1000))
+    : 0;
+  const estaBloqueado = segundosRestantes > 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (estaBloqueado) return;
     setError('');
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login', { email, password });
+      setIntentos(0);
+      setBloqueadoHasta(null);
       login(data);
       navigate('/');
     } catch (err) {
-      const msg = err.response?.data?.error ?? 'Error al iniciar sesión';
-      setError(msg);
+      const nuevosIntentos = intentos + 1;
+      setIntentos(nuevosIntentos);
+      if (nuevosIntentos >= MAX_INTENTOS) {
+        setBloqueadoHasta(Date.now() + BLOQUEO_MS);
+        setIntentos(0);
+        setError(`Demasiados intentos fallidos. Espera 30 segundos.`);
+      } else {
+        const msg = err.response?.data?.error ?? 'Error al iniciar sesión';
+        setError(`${msg} (intento ${nuevosIntentos} de ${MAX_INTENTOS})`);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,8 +123,12 @@ export default function LoginPage() {
               required
             />
           </div>
-          <button style={s.btn} type="submit" disabled={loading}>
-            {loading ? 'Ingresando...' : 'Iniciar sesión'}
+          <button
+            style={{ ...s.btn, ...(estaBloqueado ? { background: '#94a3b8', cursor: 'not-allowed' } : {}) }}
+            type="submit"
+            disabled={loading || estaBloqueado}
+          >
+            {loading ? 'Ingresando...' : estaBloqueado ? `Bloqueado (${segundosRestantes}s)` : 'Iniciar sesión'}
           </button>
         </form>
       </div>
