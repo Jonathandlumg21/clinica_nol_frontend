@@ -9,9 +9,12 @@ export function AuthProvider({ children }) {
   });
 
   const login = (userData) => {
-    localStorage.setItem('clinica_user', JSON.stringify(userData));
-    if (userData.token) localStorage.setItem('clinica_token', userData.token);
-    setUser(userData);
+    const userObj = userData.usuario
+      ? { ...userData.usuario, token: userData.token }
+      : userData;
+    localStorage.setItem('clinica_user', JSON.stringify(userObj));
+    localStorage.setItem('clinica_token', userObj.token);
+    setUser(userObj);
   };
 
   const logout = () => {
