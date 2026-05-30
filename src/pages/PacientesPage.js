@@ -23,6 +23,10 @@ const s = {
   btnHistorial: { background: 'transparent', border: '1px solid #d1d5db', color: '#475569', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
   btnEditar: { background: 'transparent', border: '1px solid #93c5fd', color: '#2563eb', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
   actions: { display: 'flex', gap: '8px', alignItems: 'center' },
+  searchBar: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', background: '#fff', padding: '14px 20px', borderRadius: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
+  searchInput: { flex: 1, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none' },
+  searchCount: { fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' },
+  emptySearch: { textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: '14px', background: '#fff', borderRadius: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
   // Modal
   overlay: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
@@ -86,6 +90,7 @@ export default function PacientesPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [formError, setFormError] = useState('');
+  const [busqueda, setBusqueda] = useState('');
   const navigate = useNavigate();
 
   const showToast = (msg) => {
@@ -154,6 +159,16 @@ export default function PacientesPage() {
   if (loading) return <div style={s.page}><p style={{ color: '#64748b' }}>Cargando pacientes...</p></div>;
   if (loadError) return <div style={s.page}><p style={{ color: '#ef4444' }}>{loadError}</p></div>;
 
+  const q = busqueda.toLowerCase().trim();
+  const pacientesFiltrados = q
+    ? pacientes.filter(p =>
+        `${p.nombre} ${p.apellido}`.toLowerCase().includes(q) ||
+        (p.telefono ?? '').toLowerCase().includes(q) ||
+        (p.direccion ?? '').toLowerCase().includes(q) ||
+        (p.medico?.nombre ?? '').toLowerCase().includes(q)
+      )
+    : pacientes;
+
   return (
     <div style={s.page}>
       <div style={s.header}>
@@ -164,44 +179,70 @@ export default function PacientesPage() {
         <button style={s.btnPrimary} onClick={openModal}>+ Nuevo paciente</button>
       </div>
 
-      <table style={s.table}>
-        <thead>
-          <tr>
-            <th style={s.th}>#</th>
-            <th style={s.th}>Nombre</th>
-            <th style={s.th}>Edad</th>
-            <th style={s.th}>Sexo</th>
-            <th style={s.th}>Teléfono</th>
-            <th style={s.th}>Dirección</th>
-            <th style={s.th}>Médico asignado</th>
-            <th style={s.th}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {pacientes.map(p => (
-            <tr key={p.id}>
-              <td style={{ ...s.td, color: '#94a3b8', fontWeight: '500' }}>{p.id}</td>
-              <td style={{ ...s.td, fontWeight: '600', color: '#1e293b' }}>{p.nombre} {p.apellido}</td>
-              <td style={s.td}>{calcEdad(p.fecha_nacimiento)} años</td>
-              <td style={s.td}><span style={s.badge(p.sexo)}>{p.sexo}</span></td>
-              <td style={s.td}>{p.telefono}</td>
-              <td style={s.td}>{p.direccion}</td>
-              <td style={s.td}><span style={s.badgeMedico}>{p.medico?.nombre}</span></td>
-              <td style={s.td}>
-                <div style={s.actions}>
-                  <button style={s.btnEditar} onClick={() => openEdit(p)}>Editar</button>
-                  <button
-                    style={s.btnHistorial}
-                    onClick={() => navigate(`/consultas?paciente=${p.id}&nombre=${encodeURIComponent(p.nombre + ' ' + p.apellido)}`)}
-                  >
-                    Ver historial
-                  </button>
-                </div>
-              </td>
+      <div style={s.searchBar}>
+        <input
+          style={s.searchInput}
+          placeholder="Buscar por nombre, teléfono, dirección o médico..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          autoComplete="off"
+        />
+        {busqueda && (
+          <span style={s.searchCount}>
+            {pacientesFiltrados.length} resultado{pacientesFiltrados.length !== 1 ? 's' : ''}
+          </span>
+        )}
+        {busqueda && (
+          <button style={s.btnHistorial} onClick={() => setBusqueda('')}>✕ Limpiar</button>
+        )}
+      </div>
+
+      {pacientesFiltrados.length === 0 && (
+        <div style={s.emptySearch}>
+          No se encontraron pacientes para &quot;<strong>{busqueda}</strong>&quot;
+        </div>
+      )}
+
+      {pacientesFiltrados.length > 0 && (
+        <table style={s.table}>
+          <thead>
+            <tr>
+              <th style={s.th}>#</th>
+              <th style={s.th}>Nombre</th>
+              <th style={s.th}>Edad</th>
+              <th style={s.th}>Sexo</th>
+              <th style={s.th}>Teléfono</th>
+              <th style={s.th}>Dirección</th>
+              <th style={s.th}>Médico asignado</th>
+              <th style={s.th}></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pacientesFiltrados.map(p => (
+              <tr key={p.id}>
+                <td style={{ ...s.td, color: '#94a3b8', fontWeight: '500' }}>{p.id}</td>
+                <td style={{ ...s.td, fontWeight: '600', color: '#1e293b' }}>{p.nombre} {p.apellido}</td>
+                <td style={s.td}>{calcEdad(p.fecha_nacimiento)} años</td>
+                <td style={s.td}><span style={s.badge(p.sexo)}>{p.sexo}</span></td>
+                <td style={s.td}>{p.telefono}</td>
+                <td style={s.td}>{p.direccion}</td>
+                <td style={s.td}><span style={s.badgeMedico}>{p.medico?.nombre}</span></td>
+                <td style={s.td}>
+                  <div style={s.actions}>
+                    <button style={s.btnEditar} onClick={() => openEdit(p)}>Editar</button>
+                    <button
+                      style={s.btnHistorial}
+                      onClick={() => navigate(`/consultas?paciente=${p.id}&nombre=${encodeURIComponent(p.nombre + ' ' + p.apellido)}`)}
+                    >
+                      Ver historial
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {showModal && (
         <div style={s.overlay} onClick={e => e.target === e.currentTarget && closeModal()}>
