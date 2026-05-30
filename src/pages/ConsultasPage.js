@@ -55,6 +55,15 @@ const s = {
   vitals: { display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap', marginTop: '4px' },
   vitalItem: { background: '#f8fafc', padding: '2px 8px', borderRadius: '4px' },
   btnVer: { background: 'transparent', border: '1px solid #d1d5db', color: '#475569', borderRadius: '6px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  btnEditar: { background: 'transparent', border: '1px solid #93c5fd', color: '#2563eb', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  actions: { display: 'flex', gap: '8px', alignItems: 'center' },
+  toast: {
+    position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
+    background: '#166534', color: '#fff', padding: '12px 24px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+    zIndex: 200, whiteSpace: 'nowrap',
+  },
+  inputDisabled: { width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', background: '#f8fafc', color: '#64748b' },
   searchWrap: { position: 'relative' },
   searchList: {
     position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
@@ -102,6 +111,8 @@ export default function ConsultasPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [toast, setToast] = useState('');
   const [pacienteSearch, setPacienteSearch] = useState('');
   const [showPacienteList, setShowPacienteList] = useState(false);
   const [hoveredPaciente, setHoveredPaciente] = useState(null);
@@ -143,25 +154,33 @@ export default function ConsultasPage() {
     `${p.nombre} ${p.apellido}`.toLowerCase().includes(pacienteSearch.toLowerCase())
   );
 
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.id_paciente) { setFormError('Debes seleccionar un paciente.'); return; }
     setFormError('');
     setSaving(true);
     try {
-      await api.post('/consultas', {
-        id_paciente:  Number(form.id_paciente),
-        id_medico:    form.id_medico    ? Number(form.id_medico)    : undefined,
-        fecha:        form.fecha        || undefined,
-        motivo:       form.motivo       || undefined,
-        notas:        form.notas        || undefined,
-        peso_kg:      form.peso_kg      ? Number(form.peso_kg)      : undefined,
-        presion:      form.presion      || undefined,
-        temperatura:  form.temperatura  ? Number(form.temperatura)  : undefined,
-      });
+      const payload = {
+        id_medico:   form.id_medico   ? Number(form.id_medico)   : undefined,
+        fecha:       form.fecha       || undefined,
+        motivo:      form.motivo      || undefined,
+        notas:       form.notas       || undefined,
+        peso_kg:     form.peso_kg     ? Number(form.peso_kg)     : undefined,
+        presion:     form.presion     || undefined,
+        temperatura: form.temperatura ? Number(form.temperatura) : undefined,
+      };
+      if (editingId) {
+        await api.put(`/consultas/${editingId}`, payload);
+      } else {
+        await api.post('/consultas', { ...payload, id_paciente: Number(form.id_paciente) });
+      }
       await fetchConsultas(pacienteIdFiltro);
       setShowModal(false);
       setForm(emptyForm);
+      setEditingId(null);
+      showToast(editingId ? 'Consulta actualizada correctamente' : 'Consulta guardada correctamente');
     } catch (err) {
       setFormError(err.response?.data?.error ?? 'Error al guardar la consulta.');
     } finally {
@@ -169,8 +188,26 @@ export default function ConsultasPage() {
     }
   };
 
-  const openModal = () => { setForm(emptyForm); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); setShowModal(true); };
-  const closeModal = () => { setShowModal(false); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); };
+  const openModal = () => { setForm(emptyForm); setEditingId(null); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); setShowModal(true); };
+  const closeModal = () => { setShowModal(false); setEditingId(null); setFormError(''); setPacienteSearch(''); setShowPacienteList(false); };
+
+  const openEdit = (c) => {
+    setForm({
+      id_paciente: String(c.id_paciente),
+      id_medico:   c.id_medico ? String(c.id_medico) : '',
+      fecha:       c.fecha ? c.fecha.split('T')[0] : '',
+      motivo:      c.motivo      ?? '',
+      notas:       c.notas       ?? '',
+      peso_kg:     c.peso_kg     != null ? String(c.peso_kg)     : '',
+      presion:     c.presion     ?? '',
+      temperatura: c.temperatura != null ? String(c.temperatura) : '',
+    });
+    setPacienteSearch(pacienteMap[c.id_paciente] ?? '');
+    setEditingId(c.id);
+    setFormError('');
+    setShowPacienteList(false);
+    setShowModal(true);
+  };
 
   const seleccionarPaciente = (p) => {
     setForm(f => ({ ...f, id_paciente: String(p.id) }));
@@ -250,7 +287,10 @@ export default function ConsultasPage() {
                   }
                 </td>
                 <td style={s.td}>
-                  <button style={s.btnVer} onClick={() => setConsultaDetalle(c)}>Ver detalle</button>
+                  <div style={s.actions}>
+                    <button style={s.btnEditar} onClick={() => openEdit(c)}>Editar</button>
+                    <button style={s.btnVer} onClick={() => setConsultaDetalle(c)}>Ver detalle</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -261,8 +301,8 @@ export default function ConsultasPage() {
       {showModal && (
         <div style={s.overlay} onClick={e => e.target === e.currentTarget && closeModal()}>
           <div style={s.modal}>
-            <p style={s.modalTitle}>Nueva consulta</p>
-            <p style={s.modalSub}>Registra los datos de la consulta médica</p>
+            <p style={s.modalTitle}>{editingId ? 'Editar consulta' : 'Nueva consulta'}</p>
+            <p style={s.modalSub}>{editingId ? 'Modifica los datos de la consulta' : 'Registra los datos de la consulta médica'}</p>
 
             {formError && <p style={s.error}>{formError}</p>}
 
@@ -273,16 +313,17 @@ export default function ConsultasPage() {
                   <label style={s.label}>Paciente *</label>
                   <div style={s.searchWrap}>
                     <input
-                      style={{ ...s.input, borderColor: form.id_paciente ? '#86efac' : '#d1d5db' }}
+                      style={editingId ? s.inputDisabled : { ...s.input, borderColor: form.id_paciente ? '#86efac' : '#d1d5db' }}
                       placeholder="Buscar por nombre..."
                       value={pacienteSearch}
                       autoComplete="off"
+                      disabled={!!editingId}
                       onChange={e => {
                         setPacienteSearch(e.target.value);
                         setShowPacienteList(true);
                         if (form.id_paciente) setForm(f => ({ ...f, id_paciente: '' }));
                       }}
-                      onFocus={() => setShowPacienteList(true)}
+                      onFocus={() => !editingId && setShowPacienteList(true)}
                       onBlur={() => setTimeout(() => setShowPacienteList(false), 150)}
                     />
                     {showPacienteList && (
@@ -352,7 +393,7 @@ export default function ConsultasPage() {
               <div style={s.modalFooter}>
                 <button type="button" style={s.btnCancel} onClick={closeModal}>Cancelar</button>
                 <button type="submit" style={s.btnSave} disabled={saving}>
-                  {saving ? 'Guardando...' : 'Guardar consulta'}
+                  {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Guardar consulta'}
                 </button>
               </div>
             </form>
@@ -425,6 +466,8 @@ export default function ConsultasPage() {
           </div>
         </div>
       )}
+
+      {toast && <div style={s.toast}>✓ {toast}</div>}
     </div>
   );
 }
