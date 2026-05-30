@@ -278,7 +278,7 @@ export default function ConsultasPage() {
                 <td style={s.td}>
                   {c.medico ? <span style={s.badge}>{c.medico.nombre}</span> : '—'}
                 </td>
-                <td style={s.td}>{new Date(c.fecha).toLocaleDateString('es-DO')}</td>
+                <td style={s.td}>{new Date(c.fecha).toLocaleDateString('es-DO', { timeZone: 'UTC' })}</td>
                 <td style={s.td}>{c.motivo ?? '—'}</td>
                 <td style={{ ...s.td, maxWidth: '220px' }}>
                   {c.notas
@@ -407,7 +407,7 @@ export default function ConsultasPage() {
             <div style={s.detailHeader}>
               <div>
                 <p style={s.detailTitle}>Detalle de consulta #{consultaDetalle.id}</p>
-                <p style={s.detailFecha}>{new Date(consultaDetalle.fecha).toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p style={s.detailFecha}>{new Date(consultaDetalle.fecha).toLocaleDateString('es-DO', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
               <button style={s.btnClose} onClick={() => setConsultaDetalle(null)}>✕</button>
             </div>
