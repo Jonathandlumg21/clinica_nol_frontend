@@ -267,6 +267,7 @@ export default function ConsultasPage() {
               <th style={s.th}>Fecha</th>
               <th style={s.th}>Motivo</th>
               <th style={s.th}>Diagnóstico</th>
+              <th style={s.th}>Medicamentos</th>
               <th style={s.th}></th>
             </tr>
           </thead>
@@ -286,6 +287,12 @@ export default function ConsultasPage() {
                   {c.notas
                     ? <span style={{ color: '#334155', fontSize: '13px' }}>{c.notas.length > 60 ? c.notas.slice(0, 60) + '...' : c.notas}</span>
                     : <span style={{ color: '#94a3b8', fontSize: '13px' }}>Sin diagnóstico</span>
+                  }
+                </td>
+                <td style={{ ...s.td, maxWidth: '200px' }}>
+                  {c.medicamentos
+                    ? <span style={{ color: '#334155', fontSize: '13px' }}>{c.medicamentos.length > 50 ? c.medicamentos.slice(0, 50) + '...' : c.medicamentos}</span>
+                    : <span style={{ color: '#94a3b8', fontSize: '13px' }}>—</span>
                   }
                 </td>
                 <td style={s.td}>
