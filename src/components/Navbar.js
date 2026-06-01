@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,43 +41,64 @@ const allLinks = [
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const closeMenu = () => setIsOpen(false);
 
   const esAdmin = user?.rol === 'admin';
   const links = allLinks.filter(l => !l.soloAdmin || esAdmin);
 
   return (
-    <aside style={s.sidebar}>
-      <div style={s.brand}>
-        <p style={s.brandTitle}>Clínica Nol</p>
-        <p style={s.brandSub}>Sistema de gestión</p>
+    <>
+      {/* Barra superior móvil */}
+      <div className="nav-topbar">
+        <p className="nav-topbar-brand">Clínica Nol</p>
       </div>
 
-      <nav style={s.nav}>
-        <p style={s.navLabel}>Menú</p>
-        {links.map(({ to, label, icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            style={({ isActive }) => ({ ...s.link, ...(isActive ? s.linkActive : {}) })}
-          >
-            <span>{icon}</span>
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* Botón hamburguesa */}
+      <button className="nav-hamburger" onClick={() => setIsOpen(o => !o)} aria-label="Menú">
+        <span />
+        <span />
+        <span />
+      </button>
 
-      {user && (
-        <div style={s.footer}>
-          <div style={s.userBox}>
-            <p style={s.userName}>{user.nombre ?? user.name ?? 'Usuario'}</p>
-            <p style={s.userRol}>{user.rol ?? user.role ?? ''}</p>
-          </div>
-          <button style={s.btnLogout} onClick={handleLogout}>Cerrar sesión</button>
+      {/* Fondo oscuro al abrir menú en móvil */}
+      <div className={`nav-backdrop${isOpen ? ' open' : ''}`} onClick={closeMenu} />
+
+      {/* Sidebar */}
+      <aside style={s.sidebar} className={`nav-sidebar${isOpen ? ' open' : ''}`}>
+        <div style={s.brand}>
+          <p style={s.brandTitle}>Clínica Nol</p>
+          <p style={s.brandSub}>Sistema de gestión</p>
         </div>
-      )}
-    </aside>
+
+        <nav style={s.nav}>
+          <p style={s.navLabel}>Menú</p>
+          {links.map(({ to, label, icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              style={({ isActive }) => ({ ...s.link, ...(isActive ? s.linkActive : {}) })}
+              onClick={closeMenu}
+            >
+              <span>{icon}</span>
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {user && (
+          <div style={s.footer}>
+            <div style={s.userBox}>
+              <p style={s.userName}>{user.nombre ?? user.name ?? 'Usuario'}</p>
+              <p style={s.userRol}>{user.rol ?? user.role ?? ''}</p>
+            </div>
+            <button style={s.btnLogout} onClick={handleLogout}>Cerrar sesión</button>
+          </div>
+        )}
+      </aside>
+    </>
   );
 }

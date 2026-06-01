@@ -116,14 +116,14 @@ export default function Dashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={styles.page}><p style={{ color: '#64748b' }}>Cargando...</p></div>;
+  if (loading) return <div className="page-pad"><p style={{ color: '#64748b' }}>Cargando...</p></div>;
 
   return (
-    <div style={styles.page}>
+    <div className="page-pad">
       <h1 style={styles.heading}>Dashboard</h1>
       <p style={styles.sub}>Resumen general del sistema</p>
 
-      <div style={styles.grid}>
+      <div className="dash-grid">
         <div style={styles.card}>
           <p style={styles.cardValue}>{stats.pacientes}</p>
           <p style={styles.cardLabel}>Pacientes registrados</p>
@@ -138,7 +138,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={styles.row2}>
+      <div className="dash-row2">
         <div style={styles.section}>
           <p style={styles.sectionTitle}>Consultas por día</p>
           <p style={styles.sectionSub}>Últimos 7 días — hoy en azul oscuro</p>

@@ -31,10 +31,12 @@ const s = {
   overlay: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+    padding: '20px',
   },
   modal: {
     background: '#fff', borderRadius: '12px', padding: '32px',
     width: '100%', maxWidth: '500px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+    maxHeight: '90vh', overflowY: 'auto',
   },
   modalTitle: { fontSize: '18px', fontWeight: '700', color: '#1e293b', margin: '0 0 24px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
@@ -156,8 +158,8 @@ export default function PacientesPage() {
   };
   const closeModal = () => { setShowModal(false); setEditingId(null); setFormError(''); };
 
-  if (loading) return <div style={s.page}><p style={{ color: '#64748b' }}>Cargando pacientes...</p></div>;
-  if (loadError) return <div style={s.page}><p style={{ color: '#ef4444' }}>{loadError}</p></div>;
+  if (loading) return <div className="page-pad"><p style={{ color: '#64748b' }}>Cargando pacientes...</p></div>;
+  if (loadError) return <div className="page-pad"><p style={{ color: '#ef4444' }}>{loadError}</p></div>;
 
   const q = busqueda.toLowerCase().trim();
   const pacientesFiltrados = q
@@ -170,7 +172,7 @@ export default function PacientesPage() {
     : pacientes;
 
   return (
-    <div style={s.page}>
+    <div className="page-pad">
       <div style={s.header}>
         <div>
           <h1 style={s.heading}>Pacientes</h1>
@@ -204,6 +206,7 @@ export default function PacientesPage() {
       )}
 
       {pacientesFiltrados.length > 0 && (
+        <div className="table-responsive">
         <table style={s.table}>
           <thead>
             <tr>
@@ -242,6 +245,7 @@ export default function PacientesPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {showModal && (
@@ -252,7 +256,7 @@ export default function PacientesPage() {
             {formError && <p style={s.error}>{formError}</p>}
 
             <form onSubmit={handleSubmit}>
-              <div style={s.grid2}>
+              <div className="rg-2">
                 <div style={s.field}>
                   <label style={s.label}>Nombre</label>
                   <input style={s.input} name="nombre" value={form.nombre} onChange={handleChange} required placeholder="Ej. Carlos" />
@@ -263,7 +267,7 @@ export default function PacientesPage() {
                 </div>
               </div>
 
-              <div style={s.grid2}>
+              <div className="rg-2">
                 <div style={s.field}>
                   <label style={s.label}>Fecha de nacimiento</label>
                   <input style={s.input} type="date" name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange} required />
@@ -277,7 +281,7 @@ export default function PacientesPage() {
                 </div>
               </div>
 
-              <div style={s.grid2}>
+              <div className="rg-2">
                 <div style={s.field}>
                   <label style={s.label}>Teléfono</label>
                   <input style={s.input} name="telefono" value={form.telefono} onChange={handleChange} placeholder="809-000-0000" />

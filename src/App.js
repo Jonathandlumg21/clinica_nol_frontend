@@ -13,16 +13,11 @@ function SoloAdmin({ children }) {
   return user?.rol === 'admin' ? children : <Navigate to="/" replace />;
 }
 
-const layout = {
-  app: { display: 'flex', minHeight: '100vh', background: '#f1f5f9' },
-  main: { marginLeft: '220px', flex: 1, minHeight: '100vh' },
-};
-
 function AppLayout() {
   return (
-    <div style={layout.app}>
+    <div className="app-layout">
       <Navbar />
-      <main style={layout.main}>
+      <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/pacientes" element={<PacientesPage />} />

@@ -11,3 +11,169 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* ===================== LAYOUT ===================== */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+.main-content {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.page-pad {
+  padding: 32px;
+}
+
+/* ===================== GRILLAS RESPONSIVAS ===================== */
+.rg-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.rg-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+/* Dashboard */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.dash-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* ===================== TABLA RESPONSIVA ===================== */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===================== NAVBAR MOBILE ===================== */
+.nav-topbar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #1e3a5f;
+  z-index: 97;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.nav-topbar-brand {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.nav-hamburger {
+  display: none;
+  position: fixed;
+  top: 8px;
+  left: 10px;
+  z-index: 100;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 98;
+}
+
+.nav-backdrop.open {
+  display: block;
+}
+
+/* ===================== TABLET (768px – 1023px) ===================== */
+@media (max-width: 1023px) {
+  .main-content {
+    margin-left: 0;
+    padding-top: 56px;
+  }
+
+  .nav-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 99;
+  }
+
+  .nav-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .nav-topbar {
+    display: flex;
+  }
+
+  .nav-hamburger {
+    display: flex;
+  }
+
+  .page-pad {
+    padding: 20px 16px;
+  }
+
+  .dash-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===================== MÓVIL (< 768px) ===================== */
+@media (max-width: 767px) {
+  .page-pad {
+    padding: 16px 12px;
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-row2 {
+    grid-template-columns: 1fr;
+  }
+
+  .rg-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .rg-3 {
+    grid-template-columns: 1fr;
+  }
+}

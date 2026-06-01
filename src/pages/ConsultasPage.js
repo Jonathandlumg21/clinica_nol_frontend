@@ -217,10 +217,10 @@ export default function ConsultasPage() {
     setShowPacienteList(false);
   };
 
-  if (loading) return <div style={s.page}><p style={{ color: '#64748b' }}>Cargando consultas...</p></div>;
+  if (loading) return <div className="page-pad"><p style={{ color: '#64748b' }}>Cargando consultas...</p></div>;
 
   return (
-    <div style={s.page}>
+    <div className="page-pad">
       <div style={s.header}>
         <div>
           <h1 style={s.heading}>Consultas</h1>
@@ -258,6 +258,7 @@ export default function ConsultasPage() {
           <p style={{ fontSize: '14px', margin: 0 }}>Presiona "Nueva consulta" para agregar la primera.</p>
         </div>
       ) : (
+        <div className="table-responsive">
         <table style={s.table}>
           <thead>
             <tr>
@@ -305,6 +306,7 @@ export default function ConsultasPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {showModal && (
@@ -317,7 +319,7 @@ export default function ConsultasPage() {
 
             <form onSubmit={handleSubmit}>
               <p style={s.sectionLabel}>Datos generales</p>
-              <div style={s.grid2}>
+              <div className="rg-2">
                 <div style={s.field}>
                   <label style={s.label}>Paciente *</label>
                   <div style={s.searchWrap}>
@@ -367,7 +369,7 @@ export default function ConsultasPage() {
                 </div>
               </div>
 
-              <div style={s.grid2}>
+              <div className="rg-2">
                 <div style={s.field}>
                   <label style={s.label}>Fecha</label>
                   <input style={s.input} type="date" name="fecha" value={form.fecha} onChange={handleChange} />
@@ -390,7 +392,7 @@ export default function ConsultasPage() {
               </div>
 
               <p style={s.sectionLabel}>Signos vitales <span style={{ fontWeight: '400', textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></p>
-              <div style={s.grid3}>
+              <div className="rg-3">
                 <div style={s.field}>
                   <label style={s.labelOpt}>Peso (kg)</label>
                   <input style={s.input} type="number" step="0.1" name="peso_kg" value={form.peso_kg} onChange={handleChange} placeholder="70.5" />
