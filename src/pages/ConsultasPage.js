@@ -96,7 +96,7 @@ const s = {
 const emptyForm = {
   id_paciente: '', id_medico: '',
   fecha: new Date().toISOString().split('T')[0],
-  motivo: '', notas: '',
+  motivo: '', notas: '', medicamentos: '',
   peso_kg: '', presion: '', temperatura: '',
 };
 
@@ -163,13 +163,14 @@ export default function ConsultasPage() {
     setSaving(true);
     try {
       const payload = {
-        id_medico:   form.id_medico   ? Number(form.id_medico)   : undefined,
-        fecha:       form.fecha       || undefined,
-        motivo:      form.motivo      || undefined,
-        notas:       form.notas       || undefined,
-        peso_kg:     form.peso_kg     ? Number(form.peso_kg)     : undefined,
-        presion:     form.presion     || undefined,
-        temperatura: form.temperatura ? Number(form.temperatura) : undefined,
+        id_medico:    form.id_medico    ? Number(form.id_medico)    : undefined,
+        fecha:        form.fecha        || undefined,
+        motivo:       form.motivo       || undefined,
+        notas:        form.notas        || undefined,
+        medicamentos: form.medicamentos || undefined,
+        peso_kg:      form.peso_kg      ? Number(form.peso_kg)      : undefined,
+        presion:      form.presion      || undefined,
+        temperatura:  form.temperatura  ? Number(form.temperatura)  : undefined,
       };
       if (editingId) {
         await api.put(`/consultas/${editingId}`, payload);
@@ -193,14 +194,15 @@ export default function ConsultasPage() {
 
   const openEdit = (c) => {
     setForm({
-      id_paciente: String(c.id_paciente),
-      id_medico:   c.id_medico ? String(c.id_medico) : '',
-      fecha:       c.fecha ? c.fecha.split('T')[0] : '',
-      motivo:      c.motivo      ?? '',
-      notas:       c.notas       ?? '',
-      peso_kg:     c.peso_kg     != null ? String(c.peso_kg)     : '',
-      presion:     c.presion     ?? '',
-      temperatura: c.temperatura != null ? String(c.temperatura) : '',
+      id_paciente:  String(c.id_paciente),
+      id_medico:    c.id_medico ? String(c.id_medico) : '',
+      fecha:        c.fecha ? c.fecha.split('T')[0] : '',
+      motivo:       c.motivo       ?? '',
+      notas:        c.notas        ?? '',
+      medicamentos: c.medicamentos ?? '',
+      peso_kg:      c.peso_kg      != null ? String(c.peso_kg)      : '',
+      presion:      c.presion      ?? '',
+      temperatura:  c.temperatura  != null ? String(c.temperatura)  : '',
     });
     setPacienteSearch(pacienteMap[c.id_paciente] ?? '');
     setEditingId(c.id);
@@ -369,9 +371,15 @@ export default function ConsultasPage() {
                 </div>
               </div>
 
-              <div style={{ ...s.field, marginBottom: '20px' }}>
+              <div style={{ ...s.field, marginBottom: '14px' }}>
                 <label style={s.label}>Notas / Diagnóstico</label>
                 <textarea style={s.textarea} name="notas" value={form.notas} onChange={handleChange} placeholder="Observaciones, diagnóstico, tratamiento..." />
+              </div>
+
+              <p style={s.sectionLabel}>Medicamentos <span style={{ fontWeight: '400', textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></p>
+              <div style={{ ...s.field, marginBottom: '20px' }}>
+                <label style={s.label}>Medicamentos recetados</label>
+                <textarea style={s.textarea} name="medicamentos" value={form.medicamentos} onChange={handleChange} placeholder="Ej. Amoxicilina 500mg cada 8h, Ibuprofeno 400mg cada 12h..." />
               </div>
 
               <p style={s.sectionLabel}>Signos vitales <span style={{ fontWeight: '400', textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></p>
@@ -435,6 +443,14 @@ export default function ConsultasPage() {
               {consultaDetalle.notas
                 ? <div style={s.diagBox}>{consultaDetalle.notas}</div>
                 : <div style={s.diagEmpty}>Sin diagnóstico registrado</div>
+              }
+            </div>
+
+            <div style={s.detailSection}>
+              <p style={s.detailSectionTitle}>Medicamentos</p>
+              {consultaDetalle.medicamentos
+                ? <div style={s.diagBox}>{consultaDetalle.medicamentos}</div>
+                : <div style={s.diagEmpty}>Sin medicamentos recetados</div>
               }
             </div>
 
