@@ -92,8 +92,17 @@ function GraficaSemana({ datos }) {
   );
 }
 
+function pacientesNuevosMes(lista) {
+  const ahora = new Date();
+  return lista.filter(p => {
+    if (!p.creado_en) return false;
+    const d = new Date(p.creado_en);
+    return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear();
+  }).length;
+}
+
 export default function Dashboard() {
-  const [stats, setStats] = useState({ pacientes: 0, usuarios: 0, consultas: 0 });
+  const [stats, setStats] = useState({ pacientes: 0, nuevosEsMes: 0, consultas: 0 });
   const [pacientes, setPacientes] = useState([]);
   const [semana, setSemana] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,17 +110,16 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([
       api.get('/pacientes'),
-      api.get('/usuarios'),
       api.get('/consultas'),
-    ]).then(([p, u, c]) => {
+    ]).then(([p, c]) => {
       const listaConsultas = c.data.value ?? c.data;
+      const listaPacientes = p.data.value ?? p.data;
       setStats({
-        pacientes: p.data.Count ?? p.data.length ?? 0,
-        usuarios: u.data.Count ?? u.data.length ?? 0,
+        pacientes: p.data.Count ?? listaPacientes.length ?? 0,
+        nuevosEsMes: pacientesNuevosMes(listaPacientes),
         consultas: listaConsultas.length,
       });
-      const lista = p.data.value ?? p.data;
-      setPacientes(lista.slice(0, 5));
+      setPacientes(listaPacientes.slice(0, 5));
       setSemana(calcularSemana(listaConsultas));
     }).finally(() => setLoading(false));
   }, []);
@@ -129,8 +137,8 @@ export default function Dashboard() {
           <p style={styles.cardLabel}>Pacientes registrados</p>
         </div>
         <div style={{ ...styles.card, borderTopColor: '#10b981' }}>
-          <p style={styles.cardValue}>{stats.usuarios}</p>
-          <p style={styles.cardLabel}>Usuarios activos</p>
+          <p style={styles.cardValue}>{stats.nuevosEsMes}</p>
+          <p style={styles.cardLabel}>Pacientes nuevos este mes</p>
         </div>
         <div style={{ ...styles.card, borderTopColor: '#f59e0b' }}>
           <p style={styles.cardValue}>{stats.consultas}</p>
