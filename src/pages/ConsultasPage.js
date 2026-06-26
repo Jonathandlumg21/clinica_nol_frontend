@@ -129,10 +129,7 @@ export default function ConsultasPage() {
     Promise.all([
       fetchConsultas(pacienteIdFiltro),
       api.get('/pacientes').then(res => setPacientes(res.data.value ?? res.data)),
-      api.get('/usuarios').then(res => {
-        const todos = res.data.value ?? res.data;
-        setMedicos(todos.filter(u => u.rol === 'medico'));
-      }),
+      api.get('/medicos').then(res => setMedicos(res.data.value ?? res.data)),
     ]).finally(() => setLoading(false));
   }, [pacienteIdFiltro]);
 

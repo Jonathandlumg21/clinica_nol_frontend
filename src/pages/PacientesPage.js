@@ -106,10 +106,7 @@ export default function PacientesPage() {
   useEffect(() => {
     Promise.all([
       fetchPacientes(),
-      api.get('/usuarios').then(res => {
-        const todos = res.data.value ?? res.data;
-        setMedicos(todos.filter(u => u.rol === 'medico'));
-      }),
+      api.get('/medicos').then(res => setMedicos(res.data.value ?? res.data)),
     ])
       .catch(() => setLoadError('No se pudo cargar la información.'))
       .finally(() => setLoading(false));
